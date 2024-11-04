@@ -2,246 +2,192 @@ const subjectData = {
     title: "Sample Subject",
     runningCodes: [
         {
-        first: "lex lex.l",
-        second: "gcc lex.yy.c",
-        third: "./a.out input.txt",
+        first: "!pip install numpy pandas scikit-learn matplotlib",
         }
     ],
     questions: [
         {
-            question: "Count the number of comments, keywords, identifiers, words, lines, and spaces from input file.",
+            question: "1. Apply PCA and SVM on a dataset and create plots based on the analysis.",
             code: `
-%{
-    int c=0,k=0,l=0,i=0,s=0;
-    extern FILE *yyin;
-%}
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
 
-alpha [a-zA-Z]
-digit [0-9]
-comment "//".*
-keyword (if|else|for|while|switch|case|break|continue|return|int|float|double|string|boolean)
-identifier {alpha}({alpha}|{digit})*
-line [\\n]+
-space [ \\t]+
+# Load dataset
+data = load_iris()
+X = data.data
+y = data.target
 
-%%
+# Standardize the data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-{comment} {c++;}
-{keyword} {k++;}
-{identifier} {i++;}
-{line} {l++;}
-{space} {s++;}
+# Apply PCA
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
 
-%%
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.3, random_state=42)
 
-int yywrap(){
-    return 1;
-}
+# Apply SVM
+svm = SVC(kernel='linear')
+svm.fit(X_train, y_train)
+y_pred = svm.predict(X_test)
 
-int main(int argc, char *argv[]){
-    FILE *fp = fopen(argv[1],"r+");
-    yyin = fp;
-    
-    yylex();
-    if(l>0){
-        l+=1;
-    }
-    printf("Comments: %d\\n",c);
-    printf("Keywords: %d\\n",k);
-    printf("Identifiers: %d\\n",i);
-    printf("Lines: %d\\n",l);
-    printf("Spaces: %d\\n",s);
-    printf("Words: %d\\n",i+k+c);
+# Evaluate the results
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy of SVM with PCA:", accuracy)
 
-    fclose(fp);
-    return 0;   
-}
+# Plotting the PCA results
+plt.figure(figsize=(8, 6))
+for i in np.unique(y):
+    plt.scatter(X_pca[y == i, 0], X_pca[y == i, 1], label=data.target_names[i])
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.title('PCA of Iris Dataset')
+plt.legend()
+plt.show()
+
     `,
-input: `
-int anujesh hello return 123 
-//commentif else for while switch 
-case break continue return 
-int float double string boolean
-`,
         },
         {
-            question: "Count number of words starting with ‘A’.",
+            question: "2. Apply the K-Nearest Neighbours Classifier on a sample dataset and evaluate results.",
             code: `
-%{
-    int count =0;
-    extern FILE *yyin;    
-%}
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
-alpha [a-zA-Z]*
-start (A|a){alpha}
+# Load dataset
+data = load_iris()
+X = data.data
+y = data.target
 
-%%
-{start} {count+=1;}
-.|\\n|\\t ;
-%%
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-int yywrap(){
-    return 1;
-}
+# Apply K-Nearest Neighbors
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
 
-int main(int argc, char *argv[]){
-    FILE *fp = fopen(argv[1],"r+");
-    yyin = fp;
+# Evaluate the results
+print("Classification Report:\n", classification_report(y_test, y_pred))
 
-    yylex();
-    printf("Words:- %d \\n",count);
-
-    fclose(fp);
-    return 0;
-}
     `,
-input: `
-int anujesh hello return 123 
-//commentif else for while switch 
-case break continue return 
-int float double string boolean
-`,
         },
         {
-            question: "Conversion of lowercase to uppercase and vice versa.",
+            question: "3. Apply Naïve Bayes Classifier on a sample dataset and evaluate results.",
             code: `
-%{
-    extern FILE *yyin;
-%}
+from sklearn.naive_bayes import GaussianNB
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
-lower [a-z]
-upper [A-Z]
-space [ \\s]
+# Load dataset
+data = load_iris()
+X = data.data
+y = data.target
 
-%%
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-{lower} {printf("%c", yytext[0] - 32);}
-{upper} {printf("%c", yytext[0] + 32);}
-\\n {printf("\\n");}
-\\t {printf("\\t");}
-{space} {printf(" ");}
-. ;
+# Apply Naive Bayes Classifier
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+y_pred = nb.predict(X_test)
 
-%%
+# Evaluate the results
+print("Classification Report:\n", classification_report(y_test, y_pred))
 
-int yywrap(){
-    return 1;
-}
-
-int main(int argc, char *argv[]){
-    FILE *fp = fopen(argv[1],"r+");
-    yyin = fp;
-
-    yylex();
-
-    fclose(fp);
-    return 0;
-}
     `,
-input: `
-int anujesh hello return 123 
-//commentif else for while switch 
-case break continue return 
-int float double string boolean
-`,
         },
         {
-            question: "Conversion of decimal to hexadecimal number in a file.",
+            question: "4. Implement Simple Linear Regression and Logistic Regression.",
             code: `
-%{ 
-    int num, r, hex_index = 0, i;
-    char a[20];
-    extern FILE *yyin;
-%} 
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import numpy as np
 
-DIGIT [0-9]+
-NON_DIGIT [^0-9]+
+# Generate synthetic dataset for linear regression
+X = np.array([1, 2, 3, 4, 5, 6]).reshape(-1, 1)
+y = np.array([1.5, 2.5, 3.7, 4.0, 5.5, 6.7])
 
-%% 
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-{DIGIT} { 
-    num = atoi(yytext);
+# Apply Linear Regression
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+y_pred = lr.predict(X_test)
 
-    hex_index = 0;
-    do {
-        r = num % 16;
-        if (r < 10) {
-            a[hex_index++] = '0' + r;
-        } else {
-            a[hex_index++] = 'A' + (r - 10);
-        }
-        num = num / 16;
-    } while (num != 0);
+# Evaluate the results
+print("Mean Squared Error:", mean_squared_error(y_test, y_pred))
+print("Predictions:", y_pred)
 
-    for (i = hex_index - 1; i >= 0; i--) {
-        printf("%c", a[i]);
-    }
-    printf("");
-}
-
-{NON_DIGIT} { 
-    printf("%s", yytext);
-}
-
-%% 
-
-int yywrap() {
-    return 1;
-}
-
-int main(int argc, char *argv[]) { 
-    FILE *fp = fopen(argv[1], "r+");
-    yyin = fp;
-    yylex(); 
-    printf("\\n");
-    fclose(fp);
-    return 0; 
-}
     `,
 
 input: `
-int anujesh hello return 123 
-//commentif else for while switch 
-case break continue return 
-int float double string boolean
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+data = load_iris()
+X = data.data[:, :2]  # Using only first two features for simplicity
+y = (data.target != 0) * 1  # Convert to binary classification (0 vs 1)
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Apply Logistic Regression
+log_reg = LogisticRegression()
+log_reg.fit(X_train, y_train)
+y_pred = log_reg.predict(X_test)
+
+# Evaluate the results
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+
 `,
 
         },
         {
-            question: "Test lines ending with \".com\".",
+            question: "5. Write a program to cluster a set of points using K-means.",
             code: `
-%{
-    int count =0;  
-    extern FILE *yyin;
-%}
+from sklearn.cluster import KMeans
+import numpy as np
+import matplotlib.pyplot as plt
 
-alpha [a-zA-Z]
-digit [0-9]
-symbol [^{alpha}{digit} \\t\\n\\s]
-content ({alpha}|{digit}|{symbol})+".com"
+# Generate synthetic dataset
+X = np.array([[1, 2], [1, 4], [1, 0], 
+              [4, 2], [4, 4], [4, 0]])
 
-%%
-{content} {count++;}
-.|\\n|\\t ;
-%%
-int yywrap(){
-    return 1;
-}
-int main(int argc, char *argv[]){
-    FILE *fp = fopen(argv[1],"r+");
-    yyin = fp;
-    yylex();
-    printf("Count:- %d\\n",count);
-    fclose(fp);
-    return 0;
-}
+# Apply K-means clustering
+kmeans = KMeans(n_clusters=2, random_state=0)
+kmeans.fit(X)
+y_kmeans = kmeans.predict(X)
+
+# Plot the results
+plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, cmap='viridis')
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], 
+            s=200, c='red', label='Centroids')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.title('K-means Clustering')
+plt.legend()
+plt.show()
+
     `,
-input: `
-int anujesh hello return 123 
-//commentif else for while switch 
-case break continue return 
-int float double string boolean
-`,
+
         }
     ]
 };
